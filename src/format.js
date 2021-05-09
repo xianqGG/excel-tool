@@ -92,5 +92,18 @@ function parseValue(val = "") {
   return res;
 }
 
+function postHandle(field, value) {
+  const regex = /(\d+)号/;
+  if (regex.test(value)) {
+    return [field + value.replace(regex, ""), regex.exec(value)[1]];
+  }
+  return [field, value];
+}
+
+function formatWithPostHandle(input) {
+  return format(input).map(([field, value]) => postHandle(field, value));
+}
+
+module.exports.formatWithPostHandle = formatWithPostHandle;
 module.exports.format = format;
 module.exports.parseValue = parseValue;

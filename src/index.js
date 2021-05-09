@@ -1,7 +1,7 @@
 const xlsx = require("node-xlsx").default;
 const fs = require("fs");
 const path = require("path");
-const { format } = require("./format");
+const { formatWithPostHandle } = require("./format");
 
 const CWD = process.cwd();
 const join = (...p) => path.resolve(CWD, ...p);
@@ -28,7 +28,7 @@ function handleExcel(excelPath) {
 
   const data = inputStr.split("；").reduce(
     (res, curr) => {
-      res.push(...format(curr).map((it) => ["", "", "", "", ...it]));
+      res.push(...formatWithPostHandle(curr).map((it) => ["", "", "", "", ...it]));
       return res;
     },
     [

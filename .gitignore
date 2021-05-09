@@ -19,3 +19,5 @@ src/_remote_base/
 webpack/dll/dist
 
 src/_cmn_dev
+dist
+excels
