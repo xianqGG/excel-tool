@@ -11,6 +11,7 @@ function isNun(v) {
 
 function format(input) {
   if (typeof input !== "string" || !input) return [];
+  input = input.trim();
   const [field, value] = input.split("：");
 
   if (!value) {
@@ -92,11 +93,72 @@ function parseValue(val = "") {
   return res;
 }
 
+function numToChinese(num) {
+  var chnNumChar = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  var chnUnitSection = ["", "万", "亿", "万亿", "亿亿"];
+  var chnUnitChar = ["", "十", "百", "千"];
+
+  function SectionToChinese(section) {
+    var strIns = "",
+      chnStr = "";
+    var unitPos = 0;
+    var zero = true;
+    while (section > 0) {
+      var v = section % 10;
+      if (v === 0) {
+        if (!zero) {
+          zero = true;
+          chnStr = chnNumChar[v] + chnStr;
+        }
+      } else {
+        zero = false;
+        strIns = chnNumChar[v];
+        strIns += chnUnitChar[unitPos];
+        chnStr = strIns + chnStr;
+      }
+      unitPos++;
+      section = Math.floor(section / 10);
+    }
+    return chnStr;
+  }
+
+  var unitPos = 0;
+  var strIns = "",
+    chnStr = "";
+  var needZero = false;
+
+  if (num === 0) {
+    return chnNumChar[0];
+  }
+
+  while (num > 0) {
+    var section = num % 10000;
+    if (needZero) {
+      chnStr = chnNumChar[0] + chnStr;
+    }
+    strIns = SectionToChinese(section);
+    strIns += section !== 0 ? chnUnitSection[unitPos] : chnUnitSection[0];
+    chnStr = strIns + chnStr;
+    needZero = section < 1000 && section > 0;
+    num = Math.floor(num / 10000);
+    unitPos++;
+  }
+
+  chnStr = chnStr.replace(/^一十/, "十");
+
+  return chnStr;
+}
+
 function postHandle(field, value) {
   const regex = /(\d+)号/;
   if (regex.test(value)) {
-    return [field + value.replace(regex, ""), regex.exec(value)[1]];
+    [field, value] = [field + value.replace(regex, ""), regex.exec(value)[1]];
   }
+
+  field = field.replace(/(\d+)组/, (match, n) =>
+    match.replace(n, numToChinese(+n))
+  );
+
   return [field, value];
 }
 
@@ -107,3 +169,4 @@ function formatWithPostHandle(input) {
 module.exports.formatWithPostHandle = formatWithPostHandle;
 module.exports.format = format;
 module.exports.parseValue = parseValue;
+module.exports.numToChinese = numToChinese;

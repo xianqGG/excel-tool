@@ -4,8 +4,8 @@
   "main": "src/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "nexe src/index.js -t windows-x64-10.16.0 -o dist/run"
-
+    "build": "nexe src/index.js -t windows-x64-10.16.0 -o dist/run",
+    "test": "jest"
   },
   "dependencies": {
     "node-xlsx": "^0.16.1"
