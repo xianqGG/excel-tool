@@ -1,6 +1,27 @@
 const { format, numToChinese, formatWithPostHandle } = require("../format");
 
 describe("format", () => {
+  it("特殊的单个", () => {
+    expect(format("老几：1组3-1号、1组2-1号")).toEqual([
+      ["老几", "1组3-1号"],
+      ["老几", "1组2-1号"],
+    ]);
+  });
+
+  it("count", () => {
+    expect(format("太平社区：1（2个）")).toEqual([
+      ["太平社区", "1"],
+      ["太平社区", "1"],
+    ]);
+
+    expect(format("太平社区：1-1（2个）、1-2（2个）")).toEqual([
+      ["太平社区", "1-1"],
+      ["太平社区", "1-1"],
+      ["太平社区", "1-2"],
+      ["太平社区", "1-2"],
+    ]);
+  });
+
   it("递增 & 单双数", () => {
     expect(format("永丰村：1组1号至2号，2组1号-2号")).toEqual([
       ["永丰村", "1组1号"],
@@ -46,18 +67,6 @@ describe("format", () => {
       ["复兴村", "25号"],
     ]);
   });
-
-  it("count", () => {
-    expect(format("太平社区：1-1（4个）、1-2（3个）")).toEqual([
-      ["太平社区", "1-1"],
-      ["太平社区", "1-1"],
-      ["太平社区", "1-1"],
-      ["太平社区", "1-1"],
-      ["太平社区", "1-2"],
-      ["太平社区", "1-2"],
-      ["太平社区", "1-2"],
-    ]);
-  });
 });
 
 describe("numToChinese", () => {
@@ -78,6 +87,13 @@ describe("numToChinese", () => {
 });
 
 describe("formatWithPostHandle", () => {
+  it("特殊的单个", () => {
+    expect(formatWithPostHandle("老几：1组3-1号、1组2-1号")).toEqual([
+      ["老几一组", "3-1"],
+      ["老几一组", "2-1"],
+    ]);
+  });
+
   it("递增 & 单双数", () => {
     expect(formatWithPostHandle("永丰村：1组1号至2号，2组1号-2号")).toEqual([
       ["永丰村一组", "1"],

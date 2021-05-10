@@ -23,12 +23,13 @@ keepActive();
 function handleExcel(excelPath) {
   const workSheetsFromFile = xlsx.parse(excelPath);
   const sheet1 = workSheetsFromFile[0];
-
   const inputStr = sheet1.data[1][1] || "";
 
   const data = inputStr.split("；").reduce(
     (res, curr) => {
-      res.push(...formatWithPostHandle(curr).map((it) => ["", "", "", "", ...it]));
+      res.push(
+        ...formatWithPostHandle(curr).map((it) => ["", "", "", "", ...it])
+      );
       return res;
     },
     [
@@ -58,8 +59,8 @@ function handleExcel(excelPath) {
       console.log("当前目录未扫描到 Excel 文件...");
     } else {
       for (let index = 0; index < result.length; index++) {
+        const filename = result[index];
         try {
-          const filename = result[index];
           console.log(`\n开始处理：${filename}`);
           const buff = handleExcel(join(filename));
           try {

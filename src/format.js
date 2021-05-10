@@ -4,6 +4,7 @@ const evenReg = /（双号）/;
 const countReg = /（(\d+)个）/;
 const numReg = /^\d+$/;
 const separatorReg = /、|，/;
+const specialSingle = /(\d+\-\d+)号/;
 
 function isNun(v) {
   return numReg.test(v);
@@ -28,11 +29,6 @@ function format(input) {
 }
 
 function parseValue(val = "") {
-  // 不是范围
-  if (!rangeReg.test(val)) {
-    return [val];
-  }
-
   // ------- 处理 val 中的控制符
   // 0 无，1 单数，2 偶数
   const step =
@@ -53,6 +49,16 @@ function parseValue(val = "") {
   // 重复
   if (count) {
     return Array(count).fill(val);
+  }
+
+  // 特殊的，看着是范围，实际是单个
+  if (specialSingle.test(val)) {
+    return [val];
+  }
+
+  // 不是范围
+  if (!rangeReg.test(val)) {
+    return [val];
   }
 
   const [start, end] = val.split(rangeReg);
@@ -151,7 +157,13 @@ function numToChinese(num) {
 
 function postHandle(field, value) {
   const regex = /(\d+)号/;
-  if (regex.test(value)) {
+
+  if (specialSingle.test(value)) {
+    [field, value] = [
+      field + value.replace(specialSingle, ""),
+      specialSingle.exec(value)[1],
+    ];
+  } else if (regex.test(value)) {
     [field, value] = [field + value.replace(regex, ""), regex.exec(value)[1]];
   }
 
