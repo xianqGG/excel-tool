@@ -10,7 +10,7 @@ function isNun(v) {
   return numReg.test(v);
 }
 
-function format(input) {
+function format(input: string) {
   if (typeof input !== "string" || !input) return [];
   input = input.trim();
   const [field, value] = input.split("：");
@@ -91,7 +91,7 @@ function parseValue(val = "") {
 
     res.push(
       start.replace(matchReg, (match, num) => {
-        return match.replace(num, index);
+        return match.replace(num, index + "");
       })
     );
   }
@@ -174,11 +174,8 @@ function postHandle(field, value) {
   return [field, value];
 }
 
-function formatWithPostHandle(input) {
+function formatWithPostHandle(input: string) {
   return format(input).map(([field, value]) => postHandle(field, value));
 }
 
-module.exports.formatWithPostHandle = formatWithPostHandle;
-module.exports.format = format;
-module.exports.parseValue = parseValue;
-module.exports.numToChinese = numToChinese;
+export { formatWithPostHandle, format, parseValue, numToChinese };

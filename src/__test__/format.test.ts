@@ -1,4 +1,4 @@
-const { format, numToChinese, formatWithPostHandle } = require("../format");
+import { format, numToChinese, formatWithPostHandle } from "../format";
 
 describe("format", () => {
   it("特殊的单个", () => {
