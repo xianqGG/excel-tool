@@ -16,6 +16,7 @@
     "@muya-ui/core": "^0.4.70",
     "@muya-ui/theme-up": "^0.3.46",
     "@muya-ui/utils": "^0.1.15",
+    "crypto-js": "^4.0.0",
     "events": "^3.3.0",
     "fs-extra": "^9.0.0",
     "node-fetch": "^2.6.1",
@@ -26,6 +27,7 @@
     "xlsx": "^0.17.0"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.0.1",
     "@types/fs-extra": "^9.0.11",
     "@types/jest": "^26.0.23",
     "@types/node": "^15.12.5",

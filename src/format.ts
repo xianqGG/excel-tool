@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 const rangeReg = /\-|至/;
 const oddReg = /（单号）/;
 const evenReg = /（双号）/;
@@ -10,13 +12,13 @@ function isNun(v) {
   return numReg.test(v);
 }
 
-function format(input: string) {
+function format(input: string): Array<[string, string]> {
   if (typeof input !== "string" || !input) return [];
   input = input.trim();
   const [field, value] = input.split("：");
 
   if (!value) {
-    console.log(`格式不匹配跳过：【${input}】`);
+    logger.error(`格式不匹配跳过：【${input}】`);
     return [];
   }
 
@@ -28,7 +30,7 @@ function format(input: string) {
     .map((val) => [field, val]);
 }
 
-function parseValue(val = "") {
+function parseValue(val = ""): string[] {
   // ------- 处理 val 中的控制符
   // 0 无，1 单数，2 偶数
   const step =
@@ -72,7 +74,7 @@ function parseValue(val = "") {
   const [startRes, endRes] = [matchReg.exec(start), matchReg.exec(end)];
 
   if (!startRes || !endRes) {
-    console.log("解析错误：", {
+    logger.error("解析错误：", {
       start,
       end,
       val,
@@ -99,7 +101,7 @@ function parseValue(val = "") {
   return res;
 }
 
-function numToChinese(num) {
+function numToChinese(num: number): string {
   var chnNumChar = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
   var chnUnitSection = ["", "万", "亿", "万亿", "亿亿"];
   var chnUnitChar = ["", "十", "百", "千"];
@@ -155,7 +157,13 @@ function numToChinese(num) {
   return chnStr;
 }
 
-function postHandle(field, value) {
+/**
+ * 后处理，修饰、美好、调整结果
+ * @param field
+ * @param value
+ * @returns
+ */
+function postHandle(field: string, value: string): [string, string] {
   const regex = /(\d+)号/;
 
   if (specialSingle.test(value)) {
