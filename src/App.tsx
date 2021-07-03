@@ -13,7 +13,7 @@ import xlsx from "xlsx";
 import { formatWithPostHandle } from "./format";
 import { useEventCallback, wait } from "@muya-ui/utils";
 import { logger } from "./logger";
-import { clearUID, getMD5, getUID, ids, saveUID } from "./configFile";
+import { clearUID, findItemById, getUID, saveUID } from "./configFile";
 import styled from "styled-components";
 import { IItem } from "./types";
 
@@ -87,9 +87,9 @@ function App() {
 
   const handleValidate = () => {
     const v: string = inputRef.current.value.trim();
-    const target = ids.find((it) => it.uid === getMD5(v));
+    const target = findItemById(v);
     if (!target) {
-      return toast.error("序列码不存在");
+      return toast.error("无效的序列码");
     }
     setItem(target);
     saveUID(v);
@@ -106,7 +106,7 @@ function App() {
   });
 
   useEffect(() => {
-    const target = ids.find((it) => it.uid === getMD5(getUID()));
+    const target = findItemById(getUID());
     if (target) {
       setItem(target);
     } else {

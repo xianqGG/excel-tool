@@ -39,3 +39,11 @@ export const ids: IItem[] = [
     uid: "d8bc0ddac4713bfd423cca828f5c3513",
   },
 ];
+
+export function findItemById(id: string) {
+  id = getMD5(id);
+  const t = ids.find((it) => it.uid === id);
+  if (!t) return null;
+  if (t.expire && t.expire < Date.now()) return null;
+  return t;
+}
