@@ -7,6 +7,8 @@ import {
   Row,
   Col,
   toast,
+  Img,
+  Link,
 } from "@muya-ui/core";
 // https://www.npmjs.com/package/xlsx
 import xlsx from "xlsx";
@@ -16,6 +18,7 @@ import { logger } from "./logger";
 import { clearUID, findItemById, getUID, saveUID } from "./configFile";
 import styled from "styled-components";
 import { IItem } from "./types";
+import qrcode from "./assets/qrcode.png";
 
 const Tool: React.FC = () => {
   const [val, setVal] = useState("");
@@ -81,6 +84,19 @@ const Tool: React.FC = () => {
   );
 };
 
+const isChromium = (() => {
+  try {
+    for (let brand_version_pair of (navigator as any).userAgentData.brands) {
+      if (brand_version_pair.brand == "Chromium") {
+        return true;
+      }
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+})();
+
 function App() {
   const [item, setItem] = useState<IItem>(null);
   const inputRef = useRef<any>();
@@ -124,7 +140,33 @@ function App() {
   return (
     <Container>
       <Space direction="vertical" spacing="s8" block>
-        <Typography.Title>雷猴啊、靓仔~</Typography.Title>
+        <Typography.Title>
+          门楼牌清单数据分解&nbsp;
+          <Typography.Text color="text" fontSize="s3">
+            有偿代做：Excel数据处理（代码定制），PS修图，CDR排版;
+          </Typography.Text>
+        </Typography.Title>
+        {!isChromium && (
+          <Typography.Paragraph color="assistant" fontSize="s2">
+            推荐使用 Chromium 内核的浏览器来打开本站点，推荐新版的
+            <Link
+              href="https://www.microsoft.com/en-us/edge"
+              target="_blank"
+              style={{ verticalAlign: "baseline" }}
+            >
+              Edge 浏览器
+            </Link>
+            或
+            <Link
+              href="https://www.google.cn/intl/zh-CN/chrome"
+              target="_blank"
+              style={{ verticalAlign: "baseline" }}
+            >
+              Chrome 浏览器
+            </Link>
+            。
+          </Typography.Paragraph>
+        )}
         {!!item ? (
           <>
             <Space block direction="vertical" spacing="s8">
@@ -133,7 +175,7 @@ function App() {
                   有效期至：
                   {item.expire
                     ? new Date(item.expire).toLocaleString()
-                    : "永久有效ƒ"}
+                    : "永久有效"}
                 </Typography.Paragraph>
 
                 <Button
@@ -151,7 +193,7 @@ function App() {
           </>
         ) : (
           <Row align="middle" gutter={10}>
-            <Col span={10} sm={12} xs={20}>
+            <Col span={10} sm={12} xs={18}>
               <Input
                 width="100%"
                 placeholder="请输入序列码"
@@ -161,13 +203,32 @@ function App() {
                 onPressEnter={handleValidate}
               />
             </Col>
-            <Col span={4} sm={4} xs={4}>
+            <Col span={4} sm={4} xs={6}>
               <Button type="primary" onClick={handleValidate}>
                 验证
               </Button>
             </Col>
           </Row>
         )}
+        <Row justify="center">
+          <div>
+            <Img
+              component="img"
+              src={qrcode}
+              suffix="off"
+              style={{ marginTop: 100, borderRadius: 4 }}
+              width={240}
+              height={240}
+            />
+            <Typography.Paragraph
+              style={{ textAlign: "center" }}
+              marginTop={12}
+              fontSize="s3"
+            >
+              扫一扫，加微信
+            </Typography.Paragraph>
+          </div>
+        </Row>
       </Space>
     </Container>
   );
