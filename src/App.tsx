@@ -155,7 +155,7 @@ function App() {
           <Typography.Title>
             门楼牌清单数据自动分解&nbsp;
             <Typography.Text color="text" fontSize="s3">
-              有偿代做：Excel数据处理（代码定制），PS修图，CDR排版;
+              有偿代做：网页开发、软件定制、Excel数据处理、PS修图、CDR排版;
             </Typography.Text>
           </Typography.Title>
           {!isChromium && (
@@ -229,8 +229,8 @@ function App() {
                 src={qrcode}
                 suffix="off"
                 style={{ marginTop: 100, borderRadius: 4 }}
-                width={240}
-                height={240}
+                width={200}
+                height={200}
               />
               <Typography.Paragraph
                 style={{ textAlign: "center" }}
