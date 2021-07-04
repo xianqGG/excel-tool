@@ -9,16 +9,19 @@ import {
   toast,
   Img,
   Link,
+  Spin,
 } from "@muya-ui/core";
 // https://www.npmjs.com/package/xlsx
 import xlsx from "xlsx";
 import { formatWithPostHandle } from "./format";
 import { useEventCallback, wait } from "@muya-ui/utils";
 import { logger } from "./logger";
-import { clearUID, findItemById, getUID, saveUID } from "./configFile";
+import { clearUID, getUID, saveUID } from "./configFile";
 import styled from "styled-components";
 import { IItem } from "./types";
 import qrcode from "./assets/qrcode.png";
+import { getUidInfo } from "./services";
+import { useAsyncRetry, useAsync } from "react-use";
 
 const Tool: React.FC = () => {
   const [val, setVal] = useState("");
@@ -101,15 +104,32 @@ function App() {
   const [item, setItem] = useState<IItem>(null);
   const inputRef = useRef<any>();
 
-  const handleValidate = () => {
+  const { loading: initialing } = useAsync(() =>
+    getUidInfo(getUID())
+      .catch(() => null)
+      .then((target) => {
+        if (target) {
+          setItem(target);
+        } else {
+          clearUID();
+        }
+      })
+  );
+
+  const { retry: handleValidate, loading } = useAsyncRetry(async () => {
     const v: string = inputRef.current.value.trim();
-    const target = findItemById(v);
-    if (!target) {
-      return toast.error("无效的序列码");
+    if (!v) return;
+    try {
+      const target = await getUidInfo(v);
+      if (!target) {
+        return toast.error("无效的序列码");
+      }
+      setItem(target);
+      saveUID(v);
+    } catch (error) {
+      toast.error("查询失败请重试");
     }
-    setItem(target);
-    saveUID(v);
-  };
+  });
 
   const loop = useEventCallback(() => {
     if (item && item.expire && item.expire < Date.now()) {
@@ -122,15 +142,6 @@ function App() {
   });
 
   useEffect(() => {
-    const target = findItemById(getUID());
-    if (target) {
-      setItem(target);
-    } else {
-      clearUID();
-    }
-  }, []);
-
-  useEffect(() => {
     const id = loop();
     return () => {
       clearTimeout(id);
@@ -138,99 +149,101 @@ function App() {
   }, [item]);
 
   return (
-    <Container>
-      <Space direction="vertical" spacing="s8" block>
-        <Typography.Title>
-          门楼牌清单数据分解&nbsp;
-          <Typography.Text color="text" fontSize="s3">
-            有偿代做：Excel数据处理（代码定制），PS修图，CDR排版;
-          </Typography.Text>
-        </Typography.Title>
-        {!isChromium && (
-          <Typography.Paragraph color="assistant" fontSize="s2">
-            推荐使用 Chromium 内核的浏览器来打开本站点，推荐新版的
-            <Link
-              href="https://www.microsoft.com/en-us/edge"
-              target="_blank"
-              style={{ verticalAlign: "baseline" }}
-            >
-              Edge 浏览器
-            </Link>
-            或
-            <Link
-              href="https://www.google.cn/intl/zh-CN/chrome"
-              target="_blank"
-              style={{ verticalAlign: "baseline" }}
-            >
-              Chrome 浏览器
-            </Link>
-            。
-          </Typography.Paragraph>
-        )}
-        {!!item ? (
-          <>
-            <Space block direction="vertical" spacing="s8">
-              <Space spacing="s6">
-                <Typography.Paragraph fontSize="s2">
-                  有效期至：
-                  {item.expire
-                    ? new Date(item.expire).toLocaleString()
-                    : "永久有效"}
-                </Typography.Paragraph>
-
-                <Button
-                  size="s"
-                  onClick={() => {
-                    clearUID();
-                    setItem(null);
-                  }}
-                >
-                  重置序列码
-                </Button>
-              </Space>
-              <Tool />
-            </Space>
-          </>
-        ) : (
-          <Row align="middle" gutter={10}>
-            <Col span={10} sm={12} xs={18}>
-              <Input
-                width="100%"
-                placeholder="请输入序列码"
-                inputRef={inputRef}
-                maxLength={32}
-                limit={32}
-                onPressEnter={handleValidate}
-              />
-            </Col>
-            <Col span={4} sm={4} xs={6}>
-              <Button type="primary" onClick={handleValidate}>
-                验证
-              </Button>
-            </Col>
-          </Row>
-        )}
-        <Row justify="center">
-          <div>
-            <Img
-              component="img"
-              src={qrcode}
-              suffix="off"
-              style={{ marginTop: 100, borderRadius: 4 }}
-              width={240}
-              height={240}
-            />
-            <Typography.Paragraph
-              style={{ textAlign: "center" }}
-              marginTop={12}
-              fontSize="s3"
-            >
-              扫一扫，加微信
+    <Spin spinning={initialing || loading}>
+      <Container>
+        <Space direction="vertical" spacing="s8" block>
+          <Typography.Title>
+            门楼牌清单数据分解&nbsp;
+            <Typography.Text color="text" fontSize="s3">
+              有偿代做：Excel数据处理（代码定制），PS修图，CDR排版;
+            </Typography.Text>
+          </Typography.Title>
+          {!isChromium && (
+            <Typography.Paragraph color="assistant" fontSize="s2">
+              推荐使用 Chromium 内核的浏览器来打开本站点，推荐新版的
+              <Link
+                href="https://www.microsoft.com/en-us/edge"
+                target="_blank"
+                style={{ verticalAlign: "baseline" }}
+              >
+                Edge 浏览器
+              </Link>
+              或
+              <Link
+                href="https://www.google.cn/intl/zh-CN/chrome"
+                target="_blank"
+                style={{ verticalAlign: "baseline" }}
+              >
+                Chrome 浏览器
+              </Link>
+              。
             </Typography.Paragraph>
-          </div>
-        </Row>
-      </Space>
-    </Container>
+          )}
+          {!!item ? (
+            <>
+              <Space block direction="vertical" spacing="s8">
+                <Space spacing="s6">
+                  <Typography.Paragraph fontSize="s2">
+                    有效期至：
+                    {item.expire
+                      ? new Date(item.expire).toLocaleString()
+                      : "永久有效"}
+                  </Typography.Paragraph>
+
+                  <Button
+                    size="s"
+                    onClick={() => {
+                      clearUID();
+                      setItem(null);
+                    }}
+                  >
+                    重置序列码
+                  </Button>
+                </Space>
+                <Tool />
+              </Space>
+            </>
+          ) : (
+            <Row align="middle" gutter={10}>
+              <Col span={10} sm={12} xs={18}>
+                <Input
+                  width="100%"
+                  placeholder="请输入序列码"
+                  inputRef={inputRef}
+                  maxLength={32}
+                  limit={32}
+                  onPressEnter={handleValidate}
+                />
+              </Col>
+              <Col span={4} sm={4} xs={6}>
+                <Button type="primary" onClick={handleValidate}>
+                  验证
+                </Button>
+              </Col>
+            </Row>
+          )}
+          <Row justify="center">
+            <div>
+              <Img
+                component="img"
+                src={qrcode}
+                suffix="off"
+                style={{ marginTop: 100, borderRadius: 4 }}
+                width={240}
+                height={240}
+              />
+              <Typography.Paragraph
+                style={{ textAlign: "center" }}
+                marginTop={12}
+                fontSize="s3"
+              >
+                扫一扫，加微信
+              </Typography.Paragraph>
+            </div>
+          </Row>
+        </Space>
+      </Container>
+    </Spin>
   );
 }
 
