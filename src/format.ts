@@ -193,7 +193,7 @@ function numToChinese(num: number): string {
 }
 
 /**
- * 后处理，修饰、美好、调整结果
+ * 后处理，修饰、美化、调整结果
  * @param field
  * @param value
  * @returns
