@@ -63,6 +63,18 @@ function parseValue(val = ""): string[] {
     return [val];
   }
 
+  // 望月巷：5附1号-3号、11附1号-3号、65附1号-4号；
+  // 沫东坝村：7组112附1号-48号、7组117附1号-72号；
+  if (/附\d+号\-\d+号$/.test(val)) {
+    const [prefix, range] = val.split("附");
+    const [start, end] = range.split(rangeReg);
+    const [startN, endN] = [start, end].map((it) => +it.replace("号", ""));
+    return Array.from({ length: endN - startN + 1 }).map(
+      (_, i) => `${prefix}-${i + startN}`
+    );
+  }
+
+  // 通用的范围处理
   const [start, end] = val.split(rangeReg);
 
   // 开头比结尾大也不是范围表示
