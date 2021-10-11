@@ -15,6 +15,40 @@ function isNun(v) {
 function format(input: string): Array<[string, string]> {
   if (typeof input !== "string" || !input) return [];
   input = input.trim();
+
+  // 望月巷：5附1号-3号、11附1号-3号、65附1号-4号；
+  // 沫东坝村：7组112附1号-48号、7组117附1号-72号；
+  if (/附\d+号\-\d+号$/.test(input)) {
+    const [field, value] = input.split("：");
+    return value
+      .split(separatorReg)
+      .reduce<
+        Array<{
+          prefix: string;
+          suffix: string;
+        }>
+      >((res, curr) => {
+        const [head, range] = curr.split("附");
+        let [fieldSuffix, numPrefix] = ["", ""];
+        if (numReg.test(head)) {
+          [fieldSuffix, numPrefix] = ["", head];
+        } else {
+          const t = head.split("组");
+          [fieldSuffix, numPrefix] = [t[0] + "组", t[1]];
+        }
+        const [start, end] = range.split(rangeReg);
+        const [startN, endN] = [start, end].map((it) => +it.replace("号", ""));
+        const result = Array.from({ length: endN - startN + 1 }).map(
+          (_, i) => ({
+            prefix: fieldSuffix,
+            suffix: `${numPrefix}-${i + startN}`,
+          })
+        );
+        return [...res, ...result];
+      }, [])
+      .map((val) => [field + val.prefix, val.suffix]);
+  }
+
   const [field, value] = input.split("：");
 
   if (!value) {
@@ -61,17 +95,6 @@ function parseValue(val = ""): string[] {
   // 不是范围
   if (!rangeReg.test(val)) {
     return [val];
-  }
-
-  // 望月巷：5附1号-3号、11附1号-3号、65附1号-4号；
-  // 沫东坝村：7组112附1号-48号、7组117附1号-72号；
-  if (/附\d+号\-\d+号$/.test(val)) {
-    const [prefix, range] = val.split("附");
-    const [start, end] = range.split(rangeReg);
-    const [startN, endN] = [start, end].map((it) => +it.replace("号", ""));
-    return Array.from({ length: endN - startN + 1 }).map(
-      (_, i) => `${prefix}-${i + startN}`
-    );
   }
 
   // 通用的范围处理
