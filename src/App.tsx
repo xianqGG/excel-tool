@@ -82,8 +82,143 @@ const Tool: React.FC = () => {
         >
           生成 Excel
         </Button>
+        <SortButton />
       </div>
     </Space>
+  );
+};
+
+const ExcelInput = styled.input.attrs({
+  type: "file",
+  accept: ".xlsx,.xls",
+})`
+  display: none;
+`;
+
+const SortButton: React.FC = () => {
+  const ref = useRef<HTMLInputElement>();
+  const isLoading = useRef(false);
+  return (
+    <Button
+      type="primary"
+      autoLoading
+      onClick={() => {
+        if (isLoading.current) {
+          toast.warning("数据正在处理中...");
+          return;
+        }
+        ref.current.click();
+        isLoading.current = true;
+      }}
+    >
+      排序
+      <ExcelInput
+        ref={ref}
+        onChange={(e) => {
+          const { files } = e.target;
+          // 通过FileReader对象读取文件
+          const fileReader = new FileReader();
+          fileReader.addEventListener("load", (fe) => {
+            try {
+              const workbook = xlsx.read(fe.target.result, { type: "binary" });
+              type Item = {
+                A: string;
+                B: string;
+                C: string;
+                D: string;
+                E: string;
+              };
+              const data: Item[] = []; // 存储获取到的数据
+              // 遍历每张工作表进行读取（这里默认只读取第一张表）
+              for (const sheet in workbook.Sheets) {
+                // 利用 sheet_to_json 方法将 excel 转成 json 数据
+                data.push(
+                  ...xlsx.utils.sheet_to_json<any>(workbook.Sheets[sheet], {
+                    header: "A",
+                  })
+                );
+                break; // read first
+              }
+              const [titleRow, ...restRows] = data;
+
+              const grouped = restRows.reduce<Record<string, Item[]>>(
+                (acc, cur) => {
+                  const roadName = cur.A.split(/\d/)[0];
+                  acc[roadName] = acc[roadName] || [];
+                  acc[roadName].push(cur);
+                  return acc;
+                },
+                {}
+              );
+
+              let entries = Object.entries(grouped);
+              entries = entries.map(([roadName, arr]) => {
+                return [roadName, arr.sort((a, b) => +a.C - +b.C)];
+              });
+
+              // roadName-i
+              const marks: Record<string, boolean> = {};
+              const resultArr: Item[] = [];
+              const tailArr: Item[] = [];
+
+              while (true) {
+                let i = 40;
+                let groupI = 0;
+                while (i) {
+                  const [roadName, arr] = entries[groupI];
+                  if (arr.length < 10) {
+                    groupI++;
+                    continue;
+                  }
+                  resultArr.push(...arr.slice(0, 10));
+                  entries[groupI][1] = arr.slice(10);
+                  i -= 10;
+                  groupI++;
+                }
+
+                const lessThan10 = entries.filter((it) => it[1].length < 10);
+                entries = entries.filter((it) => it[1].length >= 10);
+                tailArr.push(...lessThan10.map((it) => it[1]).flat());
+
+                if (entries.length < 4) {
+                  break;
+                }
+
+                // 空行
+                resultArr.push({} as any);
+              }
+
+              // 剩余的
+              tailArr.unshift(...entries.map((it) => it[1]).flat());
+
+              const finalData = [...resultArr, {} as any, ...tailArr];
+
+              console.log(111, titleRow, finalData);
+
+              // 导出
+              const fi = xlsx.utils.json_to_sheet(finalData, {
+                header: [
+                  titleRow.A,
+                  titleRow.B,
+                  titleRow.C,
+                  titleRow.D,
+                  titleRow.E,
+                ],
+              });
+              const wb = xlsx.utils.book_new();
+              xlsx.utils.book_append_sheet(wb, fi);
+              xlsx.writeFile(wb, "out.xlsx");
+            } catch (error) {
+              alert("出错了：" + error);
+            } finally {
+              isLoading.current = false;
+            }
+          });
+          // 以二进制方式打开文件
+          fileReader.readAsBinaryString(files[0]);
+        }}
+      />
+    </Button>
   );
 };
 
@@ -256,3 +391,7 @@ const Container = styled.div`
 `;
 
 export default App;
+
+function isNumber(n: any) {
+  return Number.isFinite(+n);
+}
