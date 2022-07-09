@@ -153,43 +153,46 @@ const SortButton: React.FC = () => {
 
               let entries = Object.entries(grouped);
               entries = entries.map(([roadName, arr]) => {
-                return [roadName, arr.sort((a, b) => +a.C - +b.C)];
+                return [
+                  roadName,
+                  arr.sort((a, b) => {
+                    const parse = (str: string) =>
+                      str
+                        .split(/(\d+)/)
+                        .filter((it) => /^\d+$/.test(it))
+                        .map((it) => +it);
+                    const aNums = parse(a.C);
+                    const bNums = parse(b.C);
+                    const minL = Math.min(aNums.length, bNums.length);
+                    const delta = aNums.length - bNums.length;
+                    if (delta !== 0) return delta;
+                    for (let i = 0; i < minL; i++) {
+                      const [ia, ib] = [aNums[i], bNums[i]];
+                      if (ia > ib) return 1;
+                      if (ib > ia) return -1;
+                    }
+                  }),
+                ];
               });
+              entries.sort((a, b) => b[1].length - a[1].length);
 
-              // roadName-i
-              const marks: Record<string, boolean> = {};
               const resultArr: Item[] = [];
               const tailArr: Item[] = [];
 
-              while (true) {
-                let i = 40;
-                let groupI = 0;
-                while (i) {
-                  const [roadName, arr] = entries[groupI];
-                  if (arr.length < 10) {
-                    groupI++;
-                    continue;
-                  }
-                  resultArr.push(...arr.slice(0, 10));
-                  entries[groupI][1] = arr.slice(10);
-                  i -= 10;
-                  groupI++;
+              for (let groupI = 0; groupI < entries.length; groupI += 4) {
+                const gs = entries.slice(groupI, groupI + 4);
+                while (gs.some((it) => it[1].length)) {
+                  let tl = 40;
+                  gs.forEach((group) => {
+                    const l = Math.min(10, group[1].length, tl);
+                    tl -= l;
+                    resultArr.push(...group[1].slice(0, l));
+                    group[1] = group[1].slice(l);
+                  });
                 }
-
-                const lessThan10 = entries.filter((it) => it[1].length < 10);
-                entries = entries.filter((it) => it[1].length >= 10);
-                tailArr.push(...lessThan10.map((it) => it[1]).flat());
-
-                if (entries.length < 4) {
-                  break;
-                }
-
                 // 空行
                 resultArr.push({} as any);
               }
-
-              // 剩余的
-              tailArr.unshift(...entries.map((it) => it[1]).flat());
 
               const finalData = [titleRow, ...resultArr, {} as any, ...tailArr];
 
@@ -382,6 +385,6 @@ const Container = styled.div`
 
 export default App;
 
-function isNumber(n: any) {
+function isNumber(n: string | number) {
   return Number.isFinite(+n);
 }
