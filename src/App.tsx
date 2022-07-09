@@ -191,20 +191,10 @@ const SortButton: React.FC = () => {
               // 剩余的
               tailArr.unshift(...entries.map((it) => it[1]).flat());
 
-              const finalData = [...resultArr, {} as any, ...tailArr];
-
-              console.log(111, titleRow, finalData);
+              const finalData = [titleRow, ...resultArr, {} as any, ...tailArr];
 
               // 导出
-              const fi = xlsx.utils.json_to_sheet(finalData, {
-                header: [
-                  titleRow.A,
-                  titleRow.B,
-                  titleRow.C,
-                  titleRow.D,
-                  titleRow.E,
-                ],
-              });
+              const fi = xlsx.utils.json_to_sheet(finalData, {});
               const wb = xlsx.utils.book_new();
               xlsx.utils.book_append_sheet(wb, fi);
               xlsx.writeFile(wb, "out.xlsx");
