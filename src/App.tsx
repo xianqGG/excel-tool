@@ -10,6 +10,7 @@ import {
   Img,
   Link,
   Spin,
+  Dialog,
 } from "@muya-ui/core";
 // https://www.npmjs.com/package/xlsx
 import xlsx from "xlsx";
@@ -103,18 +104,31 @@ const SortButton: React.FC = () => {
     <Button
       type="primary"
       autoLoading
-      onClick={() => {
+      onClick={async () => {
         if (isLoading.current) {
           toast.warning("数据正在处理中...");
           return;
         }
-        numRef.current = +prompt("请输入分组数量，默认是 4") || 4;
-        ref.current.click();
-        isLoading.current = true;
+        Dialog.info({
+          title: "请输入分组数量，默认是 4",
+          text: (
+            <Input
+              onChange={(e) => {
+                numRef.current = +e.target.value || 4;
+              }}
+            />
+          ),
+          onConfirm: () => {
+            isLoading.current = true;
+            ref.current.click();
+            return true;
+          },
+        });
       }}
     >
       排序
       <ExcelInput
+        onClickCapture={(e) => e.stopPropagation()}
         ref={ref}
         onChange={(e) => {
           const { files } = e.target;
