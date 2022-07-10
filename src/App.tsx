@@ -119,7 +119,9 @@ const SortButton: React.FC = () => {
             />
           ),
           onConfirm: () => {
-            numRef.current = +numRef.current || 4;
+            numRef.current = Number.isFinite(numRef.current || 0)
+              ? numRef.current
+              : 4;
             isLoading.current = true;
             ref.current.click();
             return true;
@@ -200,7 +202,7 @@ const SortButton: React.FC = () => {
 
               for (
                 let groupI = 0;
-                groupI < entries.length;
+                groupI < entries.length && groupCount;
                 groupI += groupCount
               ) {
                 const gs = entries.slice(groupI, groupI + groupCount);
