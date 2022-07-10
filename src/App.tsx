@@ -114,11 +114,12 @@ const SortButton: React.FC = () => {
           text: (
             <Input
               onChange={(e) => {
-                numRef.current = +e.target.value || 4;
+                numRef.current = +e.target.value;
               }}
             />
           ),
           onConfirm: () => {
+            numRef.current = +numRef.current || 4;
             isLoading.current = true;
             ref.current.click();
             return true;
