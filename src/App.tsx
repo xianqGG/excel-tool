@@ -98,6 +98,7 @@ const ExcelInput = styled.input.attrs({
 const SortButton: React.FC = () => {
   const ref = useRef<HTMLInputElement>();
   const isLoading = useRef(false);
+  const numRef = useRef<number>();
   return (
     <Button
       type="primary"
@@ -107,8 +108,10 @@ const SortButton: React.FC = () => {
           toast.warning("数据正在处理中...");
           return;
         }
-        ref.current.click();
+        // numRef.current = +confirm("请输入分组数量，默认是 4") || 4;
+        numRef.current = 4;
         isLoading.current = true;
+        ref.current.click();
       }}
     >
       排序
@@ -139,7 +142,7 @@ const SortButton: React.FC = () => {
                 );
                 break; // read first
               }
-              const [titleRow, ...restRows] = data;
+              const [...restRows] = data;
 
               const grouped = restRows.reduce<Record<string, Item[]>>(
                 (acc, cur) => {
@@ -179,22 +182,40 @@ const SortButton: React.FC = () => {
               const resultArr: Item[] = [];
               const tailArr: Item[] = [];
 
-              for (let groupI = 0; groupI < entries.length; groupI += 4) {
-                const gs = entries.slice(groupI, groupI + 4);
-                while (gs.some((it) => it[1].length)) {
-                  let tl = 40;
-                  gs.forEach((group) => {
-                    const l = Math.min(10, group[1].length, tl);
-                    tl -= l;
-                    resultArr.push(...group[1].slice(0, l));
-                    group[1] = group[1].slice(l);
-                  });
+              const groupCount = numRef.current;
+
+              for (
+                let groupI = 0;
+                groupI < entries.length;
+                groupI += groupCount
+              ) {
+                const gs = entries.slice(groupI, groupI + groupCount);
+                const lens = gs.map((it) => it[1].length);
+                const min = Math.min(...lens);
+                const max = Math.max(...lens);
+
+                for (let i = 0; i < min; i++) {
+                  for (let j = 0; j < groupCount; j++) {
+                    const group = gs[j];
+                    if (group) {
+                      const el = group[1][i];
+                      resultArr.push({ ...el });
+                    }
+                  }
                 }
-                // 空行
+
+                for (let j = 0; j < groupCount; j++) {
+                  for (let i = min; i < max; i++) {
+                    const group = gs[j];
+                    const el = group?.[1]?.[i];
+                    el && resultArr.push({ ...el });
+                  }
+                }
+
                 resultArr.push({} as any);
               }
 
-              const finalData = [titleRow, ...resultArr, {} as any, ...tailArr];
+              const finalData = [...resultArr, {} as any, ...tailArr];
 
               // 导出
               const fi = xlsx.utils.json_to_sheet(finalData, {});
