@@ -108,10 +108,9 @@ const SortButton: React.FC = () => {
           toast.warning("数据正在处理中...");
           return;
         }
-        // numRef.current = +confirm("请输入分组数量，默认是 4") || 4;
-        numRef.current = 4;
-        isLoading.current = true;
+        numRef.current = +prompt("请输入分组数量，默认是 4") || 4;
         ref.current.click();
+        isLoading.current = true;
       }}
     >
       排序
