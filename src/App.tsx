@@ -176,10 +176,11 @@ const SortButton: React.FC = () => {
                   roadName,
                   arr.sort((a, b) => {
                     const parse = (str: string) =>
-                      str
+                      String(str || "")
                         .split(/(\d+)/)
                         .filter((it) => /^\d+$/.test(it))
                         .map((it) => +it);
+
                     const aNums = parse(a.C);
                     const bNums = parse(b.C);
                     const minL = Math.min(aNums.length, bNums.length);
@@ -239,6 +240,7 @@ const SortButton: React.FC = () => {
               xlsx.utils.book_append_sheet(wb, fi);
               xlsx.writeFile(wb, "out.xlsx");
             } catch (error) {
+              console.error(error);
               alert("出错了：" + error);
             } finally {
               isLoading.current = false;
