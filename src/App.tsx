@@ -11,6 +11,9 @@ import {
   Link,
   Spin,
   Dialog,
+  IFormBag,
+  Form,
+  Switch,
 } from "@muya-ui/core";
 // https://www.npmjs.com/package/xlsx
 import xlsx from "xlsx";
@@ -97,9 +100,15 @@ const ExcelInput = styled.input.attrs({
 `;
 
 const SortButton: React.FC = () => {
+  type IForm = {
+    groupCount: number;
+    // true 升序
+    order: boolean;
+  };
   const ref = useRef<HTMLInputElement>();
   const isLoading = useRef(false);
-  const numRef = useRef<number>();
+  const formRef = useRef<IFormBag<IForm>>();
+  const valsRef = useRef<IForm>();
   return (
     <Button
       type="primary"
@@ -112,16 +121,19 @@ const SortButton: React.FC = () => {
         Dialog.info({
           title: "请输入分组数量，默认是 4",
           text: (
-            <Input
-              onChange={(e) => {
-                numRef.current = +e.target.value;
-              }}
-            />
+            <div>
+              <Form formBagRef={formRef}>
+                <Form.Item label="分组数量" name="groupCount">
+                  <Input />
+                </Form.Item>
+                <Form.Item label="排序" name="order" valuePropName="checked">
+                  <Switch checkedChildren="升序" unCheckedChildren="降序" />
+                </Form.Item>
+              </Form>
+            </div>
           ),
           onConfirm: () => {
-            numRef.current = Number.isFinite(numRef.current || 0)
-              ? numRef.current
-              : 4;
+            valsRef.current = formRef.current.values;
             isLoading.current = true;
             ref.current.click();
             return true;
@@ -135,10 +147,17 @@ const SortButton: React.FC = () => {
         ref={ref}
         onChange={(e) => {
           const { files } = e.target;
+          setTimeout(() => {
+            e.target.value = "";
+          });
           // 通过FileReader对象读取文件
           const fileReader = new FileReader();
           fileReader.addEventListener("load", (fe) => {
             try {
+              const vals = valsRef.current!;
+              const groupCount = +vals.groupCount || 4;
+              const sorttype = vals.order;
+
               const workbook = xlsx.read(fe.target.result, { type: "binary" });
               type Item = {
                 A: string;
@@ -175,6 +194,7 @@ const SortButton: React.FC = () => {
                 return [
                   roadName,
                   arr.sort((a, b) => {
+                    const weight = sorttype ? 1 : -1;
                     const parse = (str: string) =>
                       String(str || "")
                         .split(/(\d+)/)
@@ -185,11 +205,11 @@ const SortButton: React.FC = () => {
                     const bNums = parse(b.C);
                     const minL = Math.min(aNums.length, bNums.length);
                     const delta = aNums.length - bNums.length;
-                    if (delta !== 0) return delta;
+                    if (delta !== 0) return delta * weight;
                     for (let i = 0; i < minL; i++) {
                       const [ia, ib] = [aNums[i], bNums[i]];
-                      if (ia > ib) return 1;
-                      if (ib > ia) return -1;
+                      if (ia > ib) return 1 * weight;
+                      if (ib > ia) return -1 * weight;
                     }
                   }),
                 ];
@@ -198,8 +218,6 @@ const SortButton: React.FC = () => {
 
               const resultArr: Item[] = [];
               const tailArr: Item[] = [];
-
-              const groupCount = numRef.current;
 
               for (
                 let groupI = 0;
