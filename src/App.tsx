@@ -194,7 +194,6 @@ const SortButton: React.FC = () => {
                 return [
                   roadName,
                   arr.sort((a, b) => {
-                    const weight = sorttype ? 1 : -1;
                     const parse = (str: string) =>
                       String(str || "")
                         .split(/(\d+)/)
@@ -205,11 +204,11 @@ const SortButton: React.FC = () => {
                     const bNums = parse(b.C);
                     const minL = Math.min(aNums.length, bNums.length);
                     const delta = aNums.length - bNums.length;
-                    if (delta !== 0) return delta * weight;
+                    if (delta !== 0) return delta;
                     for (let i = 0; i < minL; i++) {
                       const [ia, ib] = [aNums[i], bNums[i]];
-                      if (ia > ib) return 1 * weight;
-                      if (ib > ia) return -1 * weight;
+                      if (ia > ib) return 1;
+                      if (ib > ia) return -1;
                     }
                   }),
                 ];
@@ -224,7 +223,10 @@ const SortButton: React.FC = () => {
                 groupI < entries.length && groupCount;
                 groupI += groupCount
               ) {
-                const gs = entries.slice(groupI, groupI + groupCount);
+                let gs = entries.slice(groupI, groupI + groupCount);
+                if (sorttype) {
+                  gs = gs.reverse();
+                }
                 const lens = gs.map((it) => it[1].length);
                 const min = Math.min(...lens);
                 const max = Math.max(...lens);
