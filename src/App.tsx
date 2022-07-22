@@ -16,7 +16,7 @@ import {
   Switch,
 } from "@muya-ui/core";
 // https://www.npmjs.com/package/xlsx
-import xlsx from "xlsx";
+import * as xlsx from "xlsx";
 import { formatWithPostHandle } from "./format";
 import { useEventCallback, wait } from "@muya-ui/utils";
 import { logger } from "./logger";
