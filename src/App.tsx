@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Input,
   Typography,
   Space,
   Row,
-  Col,
   toast,
   Img,
   Link,
@@ -18,14 +17,10 @@ import {
 // https://www.npmjs.com/package/xlsx
 import * as xlsx from "xlsx";
 import { formatWithPostHandle } from "./format";
-import { useEventCallback, wait } from "@muya-ui/utils";
+import { wait } from "@muya-ui/utils";
 import { logger } from "./logger";
-import { clearUID, getUID, saveUID } from "./configFile";
 import styled from "styled-components";
-import { IItem } from "./types";
 import qrcode from "./assets/qrcode.png";
-import { getUidInfo } from "./services";
-import { useAsyncRetry, useAsync } from "react-use";
 
 const Tool: React.FC = () => {
   const [val, setVal] = useState("");
@@ -288,55 +283,8 @@ const isChromium = (() => {
 })();
 
 function App() {
-  const [item, setItem] = useState<IItem>(null);
-  const inputRef = useRef<any>();
-
-  const { loading: initialing } = useAsync(() =>
-    getUidInfo(getUID())
-      .catch(() => null)
-      .then((target) => {
-        if (target) {
-          setItem(target);
-        } else {
-          clearUID();
-        }
-      })
-  );
-
-  const { retry: handleValidate, loading } = useAsyncRetry(async () => {
-    const v: string = inputRef.current.value.trim();
-    if (!v) return;
-    try {
-      const target = await getUidInfo(v);
-      if (!target) {
-        return toast.error("无效的序列码");
-      }
-      setItem(target);
-      saveUID(v);
-    } catch (error) {
-      toast.error("查询失败请重试");
-    }
-  });
-
-  const loop = useEventCallback(() => {
-    if (item && item.expire && item.expire < Date.now()) {
-      toast.warning("已截止有效期");
-      setItem(null);
-      clearUID();
-      return;
-    }
-    return setTimeout(loop, 1000);
-  });
-
-  useEffect(() => {
-    const id = loop();
-    return () => {
-      clearTimeout(id);
-    };
-  }, [item]);
-
   return (
-    <Spin spinning={initialing || loading}>
+    <Spin spinning={false}>
       <Container>
         <Space direction="vertical" spacing="s8" block>
           <Typography.Title>
@@ -366,49 +314,8 @@ function App() {
               。
             </Typography.Paragraph>
           )}
-          {!!item ? (
-            <>
-              <Space block direction="vertical" spacing="s8">
-                <Space spacing="s6">
-                  <Typography.Paragraph fontSize="s2">
-                    有效期至：
-                    {item.expire
-                      ? new Date(item.expire).toLocaleString()
-                      : "永久有效"}
-                  </Typography.Paragraph>
+          <Tool />
 
-                  <Button
-                    size="s"
-                    onClick={() => {
-                      clearUID();
-                      setItem(null);
-                    }}
-                  >
-                    重置序列码
-                  </Button>
-                </Space>
-                <Tool />
-              </Space>
-            </>
-          ) : (
-            <Row align="middle" gutter={10}>
-              <Col span={10} sm={12} xs={18}>
-                <Input
-                  width="100%"
-                  placeholder="请输入序列码"
-                  inputRef={inputRef}
-                  maxLength={32}
-                  limit={32}
-                  onPressEnter={handleValidate}
-                />
-              </Col>
-              <Col span={4} sm={4} xs={6}>
-                <Button type="primary" onClick={handleValidate}>
-                  验证
-                </Button>
-              </Col>
-            </Row>
-          )}
           <Row justify="center">
             <div>
               <Img
