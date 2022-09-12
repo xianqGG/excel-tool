@@ -19,6 +19,7 @@
     "@muya-ui/utils": "^0.1.15",
     "@vitejs/plugin-react": "^2.0.0",
     "axios": "^0.21.1",
+    "browser-fs-access": "^0.31.0",
     "crypto-js": "^4.0.0",
     "events": "^3.3.0",
     "fs-extra": "^9.0.0",

@@ -21,6 +21,8 @@ import { wait } from "@muya-ui/utils";
 import { logger } from "./logger";
 import styled from "styled-components";
 import qrcode from "./assets/qrcode.png";
+import { exportExcel } from "./utils";
+import { SortButton } from "./sort";
 
 const Tool: React.FC = () => {
   const [val, setVal] = useState("");
@@ -81,191 +83,10 @@ const Tool: React.FC = () => {
         >
           生成 Excel
         </Button>
-        <SortButton />
+        <SortButton v={1} />
+        {/* <SortButton v={2} /> */}
       </div>
     </Space>
-  );
-};
-
-const ExcelInput = styled.input.attrs({
-  type: "file",
-  accept: ".xlsx,.xls",
-})`
-  display: none;
-`;
-
-const SortButton: React.FC = () => {
-  type IForm = {
-    groupCount: number;
-    // true 升序
-    order: boolean;
-  };
-  const ref = useRef<HTMLInputElement>();
-  const isLoading = useRef(false);
-  const formRef = useRef<IFormBag<IForm>>();
-  const valsRef = useRef<IForm>();
-  return (
-    <Button
-      type="primary"
-      autoLoading
-      onClick={async () => {
-        if (isLoading.current) {
-          toast.warning("数据正在处理中...");
-          return;
-        }
-        Dialog.info({
-          title: "请输入分组数量，默认是 4",
-          text: (
-            <div>
-              <Form formBagRef={formRef}>
-                <Form.Item label="分组数量" name="groupCount">
-                  <Input />
-                </Form.Item>
-                <Form.Item label="排序" name="order" valuePropName="checked">
-                  <Switch checkedChildren="升序" unCheckedChildren="降序" />
-                </Form.Item>
-              </Form>
-            </div>
-          ),
-          onConfirm: () => {
-            valsRef.current = formRef.current.values;
-            isLoading.current = true;
-            ref.current.click();
-            return true;
-          },
-        });
-      }}
-    >
-      排序
-      <ExcelInput
-        onClickCapture={(e) => e.stopPropagation()}
-        ref={ref}
-        onChange={(e) => {
-          const { files } = e.target;
-          setTimeout(() => {
-            e.target.value = "";
-          });
-          // 通过FileReader对象读取文件
-          const fileReader = new FileReader();
-          fileReader.addEventListener("load", (fe) => {
-            try {
-              const vals = valsRef.current!;
-              const groupCount = +vals.groupCount || 4;
-              const sorttype = vals.order;
-
-              const workbook = xlsx.read(fe.target.result, { type: "binary" });
-              type Item = {
-                A: string;
-                B: string;
-                C: string;
-                D: string;
-                E: string;
-              };
-              const data: Item[] = []; // 存储获取到的数据
-              // 遍历每张工作表进行读取（这里默认只读取第一张表）
-              for (const sheet in workbook.Sheets) {
-                // 利用 sheet_to_json 方法将 excel 转成 json 数据
-                data.push(
-                  ...xlsx.utils.sheet_to_json<any>(workbook.Sheets[sheet], {
-                    header: "A",
-                  })
-                );
-                break; // read first
-              }
-              const [...restRows] = data;
-
-              const grouped = restRows.reduce<Record<string, Item[]>>(
-                (acc, cur) => {
-                  const roadName = cur.A.split(/\d/)[0];
-                  acc[roadName] = acc[roadName] || [];
-                  acc[roadName].push(cur);
-                  return acc;
-                },
-                {}
-              );
-
-              let entries = Object.entries(grouped);
-              entries = entries.map(([roadName, arr]) => {
-                return [
-                  roadName,
-                  arr.sort((a, b) => {
-                    const parse = (str: string) =>
-                      String(str || "")
-                        .split(/(\d+)/)
-                        .filter((it) => /^\d+$/.test(it))
-                        .map((it) => +it);
-
-                    const aNums = parse(a.C);
-                    const bNums = parse(b.C);
-                    const minL = Math.min(aNums.length, bNums.length);
-                    const delta = aNums.length - bNums.length;
-                    if (delta !== 0) return delta;
-                    for (let i = 0; i < minL; i++) {
-                      const [ia, ib] = [aNums[i], bNums[i]];
-                      if (ia > ib) return 1;
-                      if (ib > ia) return -1;
-                    }
-                  }),
-                ];
-              });
-              entries.sort((a, b) => b[1].length - a[1].length);
-
-              const resultArr: Item[] = [];
-              const tailArr: Item[] = [];
-
-              for (
-                let groupI = 0;
-                groupI < entries.length && groupCount;
-                groupI += groupCount
-              ) {
-                let gs = entries.slice(groupI, groupI + groupCount);
-                if (sorttype) {
-                  gs = gs.reverse();
-                }
-                const lens = gs.map((it) => it[1].length);
-                const min = Math.min(...lens);
-                const max = Math.max(...lens);
-
-                for (let i = 0; i < min; i++) {
-                  for (let j = 0; j < groupCount; j++) {
-                    const group = gs[j];
-                    if (group) {
-                      const el = group[1][i];
-                      resultArr.push({ ...el });
-                    }
-                  }
-                }
-
-                for (let j = 0; j < groupCount; j++) {
-                  for (let i = min; i < max; i++) {
-                    const group = gs[j];
-                    const el = group?.[1]?.[i];
-                    el && resultArr.push({ ...el });
-                  }
-                }
-
-                resultArr.push({} as any);
-              }
-
-              const finalData = [...resultArr, {} as any, ...tailArr];
-
-              // 导出
-              const fi = xlsx.utils.json_to_sheet(finalData, {});
-              const wb = xlsx.utils.book_new();
-              xlsx.utils.book_append_sheet(wb, fi);
-              xlsx.writeFile(wb, "out.xlsx");
-            } catch (error) {
-              console.error(error);
-              alert("出错了：" + error);
-            } finally {
-              isLoading.current = false;
-            }
-          });
-          // 以二进制方式打开文件
-          fileReader.readAsBinaryString(files[0]);
-        }}
-      />
-    </Button>
   );
 };
 
@@ -291,6 +112,12 @@ function App() {
             门楼牌清单数据自动分解&nbsp;
             <Typography.Text color="text" fontSize="s3">
               有偿代做：网页开发、软件定制、Excel数据处理、PS修图、CDR排版;
+            </Typography.Text>
+          </Typography.Title>
+          <Typography.Title>
+            承接批量排版：&nbsp;
+            <Typography.Text color="text" fontSize="s3">
+              路牌、 二维码门牌、二维码、条形码、流水号、工作证、标签等......
             </Typography.Text>
           </Typography.Title>
           {!isChromium && (
