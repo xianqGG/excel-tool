@@ -7,12 +7,131 @@
   <title>Excel Tool</title>
   <script type="module" crossorigin src="./assets/index.7f6ed4fa.js"></script>
   <style>
+    /* 设置页面背景颜色和字体 */
     body {
       background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    /* 设置页面标题样式 */
+    h1 {
+      font-size: 2em;
+      text-align: center;
+      margin: 1em 0;
+    }
+
+    /* 设置页面内容区域样式 */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2em;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+    }
+
+    /* 设置按钮样式 */
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.5em 1em;
+      cursor: pointer;
+    }
+
+    /* 设置按钮悬停样式 */
+    button:hover {
+      background-color: #0069d9;
+    }
+
+    /* 设置表格样式 */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      padding: 0.5em;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    /* 设置表单样式 */
+    form {
+      margin-bottom: 2em;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5em;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 0.5em;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    /* 设置表单按钮样式 */
+    .form-button {
+      text-align: center;
+    }
+
+    .form-button button {
+      margin: 1em auto;
     }
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="container">
+    <h1>Excel Tool</h1>
+    <form>
+      <label for="filename">文件名：</label>
+      <input type="text" name="filename" id="filename" placeholder="请输入文件名" />
+      <label for="sheetname">工作表名：</label>
+      <select name="sheetname" id="sheetname">
+        <option value="sheet1">Sheet1</option>
+        <option value="sheet2">Sheet2</option>
+        <option value="sheet3">Sheet3</option>
+      </select>
+      <div class="form-button">
+        <button type="button">提交</button>
+      </div>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>年龄</th>
+          <th>性别</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>张三</td>
+          <td>20</td>
+          <td>男</td>
+        </tr>
+        <tr>
+          <td>李四</td>
+          <td>25</td>
+          <td>女</td>
+        </tr>
+        <tr>
+          <td>王五</td>
+          <td>30</td>
+          <td>男</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </body>
 </html>
