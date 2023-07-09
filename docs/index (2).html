@@ -1,0 +1,12 @@
+const xhr = new XMLHttpRequest();
+xhr.open("GET", "https://xianqgg.github.io/excel-tool/田长制1.txt");
+xhr.onreadystatechange = function () {
+  if (xhr.readyState === 4 && xhr.status === 200) {
+    // 解析文本内容，生成表格数据
+    const tableData = parseTextToTable(xhr.responseText);
+
+    // 在页面上渲染表格
+    renderTable(tableData);
+  }
+};
+xhr.send();
