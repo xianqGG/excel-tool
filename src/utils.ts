@@ -20,7 +20,7 @@ export const fileToWorkbook = async (excelFile: File) => {
   return p;
 };
 
-export const exportExcel = (data: any, filename = "排序完成.xlsx") => {
+export const exportExcel = (data: any, filename = "out.xlsx") => {
   // 导出
   const fi = xlsx.utils.json_to_sheet(data, {});
   const wb = xlsx.utils.book_new();
