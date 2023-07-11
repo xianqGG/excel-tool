@@ -3,87 +3,98 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>二维码标识牌</title>
+<title>-</title>
 <style>
-
-{ margin: 0; padding: 0; } body { padding: 20px; } .app { width: 400px; max-width: 100%; margin: 0 auto; } #title { background-color: #f2f2f2; height: 40px; line-height: 40px; font-size: 18px; text-align: center; } #table { width: 100%; border-collapse: collapse; } tr { height: 40px; } tr:nth-child(even) { background-color: #f2f2f2; } tr:not(:last-child) { border-bottom: 1px solid rgba(221, 221, 221, 0.5); } th + th { border-left: 1px solid rgba(221, 221, 221, 0.5); } th { font-size: 16px; font-weight: normal; color: #333; text-align: left; /* 修改文本左对齐 */ } tr th:first-of-type { font-weight: bold; } .phone-link { color: blue; text-decoration: underline; cursor: pointer; } .center-content { text-align: center; } </style> </head> <body> <div class="app"> <h1 id="title"></h1> <table id="table"></table> </div>
-<script>
-const main = async () => {
-const $ = document.querySelector.bind(document);
-/**
-* @type {HTMLElement}
-/
-const $title = $('#title');
-/*
-* @type {HTMLElement}
-*/
-const $table = $('#table');
-
-const qrCodeData = {
-  title: '二维码标识牌',
-  properties: [
-    '窨井属性：燃气阀门井',
-    '窨井编号：LHZYRQ-黄河路001',
-    '井盖材质：树脂复合井盖，直径700mm，管径600mm',
-    '承载等级：铸铁井盖D400，复合井盖D250',
-    '执行标准：GB/T23858-2009《检查井盖》',
-    '生产厂家：无棣昊佳',
-    '生产日期：见井盖正面',
-    '产权单位：漯河中裕燃气有限公司',
-    '24小时行业服务电话：<a href="tel:03953156777">0395-3156777</a>'
-  ]
-};
-
-const title = qrCodeData.title;
-const properties = qrCodeData.properties;
-
-const maxCount = Math.max(...properties.map((property) => property.length));
-
-const lineBreakCount = (title.match(/\n/g) || []).length;
-if (lineBreakCount > 2) {
-  $title.classList.add('center-content');
-  $title.innerHTML = title;
-} else {
-  document.title = title;
-  $title.innerHTML = title;
+* {
+margin: 0;
+padding: 0;
 }
+body {
+padding: 20px;
+}
+.app {
+width: 400px;
+max-width: 100%;
+margin: 0 auto;
+}
+#title {
+background-color: #f2f2f2;
+height: 40px;
+line-height: 40px;
+font-size: 18px;
+text-align: center;
+}
+.phone-link {
+color: blue;
+text-decoration: underline;
+cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<h1 id="title"></h1>
+</div>
 
-const formatCell = (cellContent) => {
-  if (/^\d{4}-\d{7}$/.test(cellContent)) {
-    return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
-  } else if (/^\d{11}$/.test(cellContent)) {
-    return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
-  } else {
-    return cellContent;
-  }
-};
+<script>
+  const main = async () => {
+    const $ = document.querySelector.bind(document);
+    /**
+     * @type {HTMLElement}
+     */
+    const $title = $('#title');
 
-$table.innerHTML =
-  '<tbody>' +
-  properties
-    .map((property) =>
-      Array.from({ length: maxCount })
-        .map((_, i) => `<th>${formatCell(property[i] || '')}</th>`)
-        .join(''),
-    )
-    .map((rowStr) => `<tr>${rowStr}</tr>`)
-    .join('') +
-  '</tbody>';
+    const query = new URLSearchParams(location.search.split('?')[1]);
+    const path = `data/${query.get('id')}.txt`;
 
-const phoneLinks = document.querySelectorAll('.phone-link');
-phoneLinks.forEach((link) => {
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    const phoneNumber = event.target.getAttribute('href').replace('tel:', '');
-    window.location.href = `tel:${phoneNumber}`;
+    const [[title], ...data] = await fetch(path)
+      .then((res) => res.text())
+      .catch(() => '')
+      .then((str) =>
+        str
+          .split(/^$/gm)
+          .map((it) => it.trim())
+          .map((it) =>
+            it
+              .split(/\n|\r/)
+              .map((subit) => subit.trim())
+              .filter(Boolean),
+          ),
+      );
+
+    document.title = title;
+    $title.innerHTML = title;
+
+    const formatCell = (cellContent) => {
+      if (/^\d{4}-\d{7}$/.test(cellContent)) {
+        return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
+      } else if (/^\d{11}$/.test(cellContent)) {
+        return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
+      } else {
+        return cellContent;
+      }
+    };
+
+    const formattedData = data.map((rows) => rows.map((cell) => formatCell(cell)));
+
+    const content = formattedData.map((row) => row.join('<br>')).join('<br>');
+
+    $title.insertAdjacentHTML('afterend', content);
+
+    const phoneLinks = document.querySelectorAll('.phone-link');
+    phoneLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const phoneNumber = event.target.getAttribute('href').replace('tel:', '');
+        window.location.href = `tel:${phoneNumber}`;
+      });
+    });
+  };
+
+  main().catch((err) => {
+    console.error(err);
+    alert('错误：' + err.message);
   });
-});
-};
-
-main().catch((err) => {
-console.error(err);
-alert('错误：' + err.message);
-});
 </script>
 </body>
 </html>
