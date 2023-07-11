@@ -94,8 +94,14 @@ cursor: pointer;
 
     const maxCount = Math.max(...data.map((it) => it.length));
 
-    document.title = title;
-    $title.innerHTML = title;
+    const lineBreakCount = (title.match(/\n/g) || []).length;
+    if (lineBreakCount === 3) {
+      document.title = title;
+      $title.innerHTML = title;
+    } else {
+      document.title = "-";
+      $title.innerHTML = "-";
+    }
 
     const formatCell = (cellContent) => {
       if (/^\d{4}-\d{7}$/.test(cellContent)) {
