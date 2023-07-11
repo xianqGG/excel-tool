@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,41 +10,49 @@ margin: 0;
 padding: 0;
 }
 body {
-padding: 12px;
+padding: 20px;
 }
 .app {
 width: 400px;
 max-width: 100%;
 margin: 0 auto;
 }
-#title,
-#tail {
+#title {
 background-color: #f2f2f2;
 height: 40px;
 line-height: 40px;
 font-size: 18px;
 text-align: center;
-font-weight: bolder;
-margin-bottom: 16px;
+}
+#table {
+width: 100%;
+border-collapse: collapse;
+}
+tr {
+height: 40px;
+}
+tr:nth-child(even) {
+background-color: #f2f2f2;
+}
+tr:not(:last-child) {
+border-bottom: 1px solid rgba(221, 221, 221, 0.5);
+}
+th + th {
+border-left: 1px solid rgba(221, 221, 221, 0.5);
 }
 th {
 font-size: 16px;
 font-weight: normal;
 color: #333;
-padding: 0 4px;
-white-space: nowrap;
+text-align: left; /* 修改文本左对齐 */
 }
 tr th:first-of-type {
-font-weight: bolder;
-width: 100px;
+font-weight: bold;
 }
-a[href^='tel'] {
-color: #6cf;
+.phone-link {
+color: blue;
 text-decoration: underline;
-}
-#table td {
-padding: 4px;
-word-break: break-word;
+cursor: pointer;
 }
 </style>
 </head>
@@ -52,45 +60,30 @@ word-break: break-word;
 <div class="app">
 <h1 id="title"></h1>
 <table id="table"></table>
-<h1 id="tail"></h1>
 </div>
 
 <script>
-  const tags = {
-    phone: (phone = '') => `<a href="tel:${phone}">${phone}</a>`,
-  };
-
-  const renderItem = (th = '') => {
-    th = th || '';
-    th = th
-      .replace(/\d{2,}\-\d{4,}/g, tags.phone)
-      .replace(/\d{5,}/g, tags.phone);
-    return `<th>${th}</th>`;
-  };
-
   const main = async () => {
     const $ = document.querySelector.bind(document);
     /**
      * @type {HTMLElement}
      */
     const $title = $('#title');
-    const $tail = $('#tail');
     /**
      * @type {HTMLElement}
      */
     const $table = $('#table');
 
     const query = new URLSearchParams(location.search.split('?')[1]);
-    const path = `data/${query.get('id')}.txt?${Date.now()}`;
+    const path = `data/${query.get('id')}.txt`;
 
-    let [[title], ...data] = await fetch(path)
+    const [[title], ...data] = await fetch(path)
       .then((res) => res.text())
       .catch(() => '')
       .then((str) =>
         str
           .split(/^$/gm)
           .map((it) => it.trim())
-          .filter(Boolean)
           .map((it) =>
             it
               .split(/\n|\r/)
@@ -98,30 +91,42 @@ word-break: break-word;
               .filter(Boolean),
           ),
       );
-    console.log(data);
-    let tail = '';
-    const lastdata = data[data.length - 1];
-    if (lastdata && lastdata.length === 1) {
-      tail = lastdata[0];
-      data = data.slice(0, data.length - 1);
-    }
 
     const maxCount = Math.max(...data.map((it) => it.length));
 
     document.title = title;
     $title.innerHTML = title;
+
+    const formatCell = (cellContent) => {
+      if (/^\d{4}-\d{7}$/.test(cellContent)) {
+        return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
+      } else if (/^\d{11}$/.test(cellContent)) {
+        return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
+      } else {
+        return cellContent;
+      }
+    };
+
     $table.innerHTML =
       '<tbody>' +
       data
         .map((rows) =>
           Array.from({ length: maxCount })
-            .map((_, i) => renderItem(rows[i]))
+            .map((_, i) => `<th>${formatCell(rows[i] || '')}</th>`)
             .join(''),
         )
         .map((rowStr) => `<tr>${rowStr}</tr>`)
         .join('') +
       '</tbody>';
-    $tail.innerHTML = tail;
+
+    const phoneLinks = document.querySelectorAll('.phone-link');
+    phoneLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const phoneNumber = event.target.getAttribute('href').replace('tel:', '');
+        window.location.href = `tel:${phoneNumber}`;
+      });
+    });
   };
 
   main().catch((err) => {
