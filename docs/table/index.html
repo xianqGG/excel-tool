@@ -49,6 +49,11 @@ text-align: left; /* 修改文本左对齐 */
 tr th:first-of-type {
 font-weight: bold;
 }
+.phone-link {
+color: blue;
+text-decoration: underline;
+cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -91,17 +96,35 @@ font-weight: bold;
 
     document.title = title;
     $title.innerHTML = title;
+
+    const formatCell = (cellContent) => {
+      if (/^(\d{3}-\d{8}|\d{4}-\d{7})$/.test(cellContent)) {
+        return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
+      } else {
+        return cellContent;
+      }
+    };
+
     $table.innerHTML =
       '<tbody>' +
       data
         .map((rows) =>
           Array.from({ length: maxCount })
-            .map((_, i) => `<th>${rows[i] || ''}</th>`)
+            .map((_, i) => `<th>${formatCell(rows[i] || '')}</th>`)
             .join(''),
         )
         .map((rowStr) => `<tr>${rowStr}</tr>`)
         .join('') +
       '</tbody>';
+
+    const phoneLinks = document.querySelectorAll('.phone-link');
+    phoneLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const phoneNumber = event.target.getAttribute('href').replace('tel:', '');
+        window.location.href = `tel:${phoneNumber}`;
+      });
+    });
   };
 
   main().catch((err) => {
