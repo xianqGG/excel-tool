@@ -54,6 +54,9 @@ color: blue;
 text-decoration: underline;
 cursor: pointer;
 }
+.center-content {
+text-align: center;
+}
 </style>
 </head>
 <body>
@@ -95,12 +98,12 @@ cursor: pointer;
     const maxCount = Math.max(...data.map((it) => it.length));
 
     const lineBreakCount = (title.match(/\n/g) || []).length;
-    if (lineBreakCount === 3) {
-      document.title = title;
+    if (lineBreakCount > 2) {
+      $title.classList.add('center-content');
       $title.innerHTML = title;
     } else {
-      document.title = "-";
-      $title.innerHTML = "-";
+      document.title = title;
+      $title.innerHTML = title;
     }
 
     const formatCell = (cellContent) => {
