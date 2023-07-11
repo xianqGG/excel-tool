@@ -54,12 +54,16 @@ color: blue;
 text-decoration: underline;
 cursor: pointer;
 }
+#content {
+margin-top: 20px;
+}
 </style>
 </head>
 <body>
 <div class="app">
 <h1 id="title"></h1>
 <table id="table"></table>
+<div id="content"></div>
 </div>
 
 <script>
@@ -73,6 +77,10 @@ cursor: pointer;
      * @type {HTMLElement}
      */
     const $table = $('#table');
+    /**
+     * @type {HTMLElement}
+     */
+    const $content = $('#content');
 
     const query = new URLSearchParams(location.search.split('?')[1]);
     const path = `data/${query.get('id')}.txt`;
@@ -125,6 +133,8 @@ cursor: pointer;
         window.location.href = `tel:${phoneNumber}`;
       });
     });
+
+    $content.innerHTML = data.flat().join('<br>');
   };
 
   main();
