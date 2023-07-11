@@ -1,77 +1,4 @@
 <!DOCTYPE html>
-<<<<<<< HEAD
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>-</title>
-<style>
-
-{ margin: 0; padding: 0; } body { padding: 20px; } .app { width: 400px; max-width: 100%; margin: 0 auto; } #title { background-color: #f2f2f2; height: 40px; line-height: 40px; font-size: 18px; text-align: center; } .phone-link { color: blue; text-decoration: underline; cursor: pointer; } .content { margin-top: 20px; line-height: 2; } </style> </head> <body> <div class="app"> <h1 id="title"></h1> <div class="content"></div> </div>
-<script>
-const main = async () => {
-const $ = document.querySelector.bind(document);
-/**
-* @type {HTMLElement}
-*/
-const $title = $('#title');
-const $content = $('.content');
-
-const query = new URLSearchParams(location.search.split('?')[1]);
-const path = `data/${query.get('id')}.txt`;
-
-const [[title], ...data] = await fetch(path)
-  .then((res) => res.text())
-  .catch(() => '')
-  .then((str) =>
-    str
-      .split(/^$/gm)
-      .map((it) => it.trim())
-      .map((it) =>
-        it
-          .split(/\n|\r/)
-          .map((subit) => subit.trim())
-          .filter(Boolean),
-      ),
-  );
-
-document.title = title;
-$title.innerHTML = title;
-
-const formatCell = (cellContent) => {
-  if (/^\d{4}-\d{7}$/.test(cellContent)) {
-    return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
-  } else if (/^\d{11}$/.test(cellContent)) {
-    return `<a class="phone-link" href="tel:${cellContent}">${cellContent}</a>`;
-  } else {
-    return cellContent;
-  }
-};
-
-const formattedData = data.map((rows) => rows.map((cell) => formatCell(cell)));
-
-const content = formattedData.map((row) => row.join('<br>')).join('<br>');
-
-$content.innerHTML = content;
-
-const phoneLinks = document.querySelectorAll('.phone-link');
-phoneLinks.forEach((link) => {
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    const phoneNumber = event.target.getAttribute('href').replace('tel:', '');
-    window.location.href = `tel:${phoneNumber}`;
-  });
-});
-};
-
-main().catch((err) => {
-console.error(err);
-alert('错误：' + err.message);
-});
-</script>
-</body>
-</html>
-=======
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -213,4 +140,3 @@ alert('错误：' + err.message);
     </script>
   </body>
 </html>
->>>>>>> 5e728466b664b182237c2f0d62032d846871fd03
