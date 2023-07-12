@@ -72,8 +72,8 @@ color: #6cf;
   const renderItem = (th = '') => {
     th = th || '';
     th = th
-      .replace(/\d{2,}-\d+/g, tags.phone)
-      .replace(/\d{5,}/g, tags.phone);
+      .replace(/\d{4}-\d+/g, tags.phone)
+      .replace(/\d{11}/g, tags.phone);
     return `<th>${th}</th>`;
   };
 
