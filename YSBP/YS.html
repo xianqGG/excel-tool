@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>桥名牌</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  padding: 12px;
+}
+
+.app {
+  width: 400px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+#title,
+#table {
+  background-color: #f2f2f2;
+  padding: 12px;
+}
+
+#title {
+  text-align: center;
+}
+
+#table {
+  margin-top: 12px;
+}
+
+tr:nth-child(even) {
+  background-color: transparent;
+}
+
+th {
+  font-size: 16px;
+  font-weight: normal;
+  color: #333;
+  padding: 4px;
+  text-align: left;
+}
+
+a[href^='tel'] {
+  color: #6cf;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<h1 id="title"></h1>
+<table id="table"></table>
+</div>
+
+<script>
+  const tags = {
+    phone: (phone = '') => `<a href="tel:${phone}">${phone}</a>`,
+  };
+
+  const renderItem = (th = '') => {
+    th = th || '';
+    th = th
+      .replace(/\d{4}-\d+/g, tags.phone)
+      .replace(/\d{11}/g, tags.phone);
+    return `<th>${th}</th>`;
+  };
+
+  const main = async () => {
+    const $ = document.querySelector.bind(document);
+    /**
+     * @type {HTMLElement}
+     */
+    const $title = $('#title');
+    /**
+     * @type {HTMLElement}
+     */
+    const $table = $('#table');
+
+    const query = new URLSearchParams(location.search.split('?')[1]);
+    const path = `1/${query.get('id')}.txt?${Date.now()}`;
+
+    let [[title], ...data] = await fetch(path)
+      .then((res) => res.text())
+      .catch(() => '')
+      .then((str) =>
+        str
+          .split(/^$/gm)
+          .map((it) => it.trim())
+          .filter(Boolean)
+          .map((it) =>
+            it
+              .split(/\n|\r/)
+              .map((subit) => subit.trim())
+              .filter(Boolean),
+          ),
+      );
+    console.log(data);
+
+    const maxCount = Math.max(...data.map((it) => it.length));
+
+    document.title = title;
+    $title.innerHTML = title;
+    $table.innerHTML =
+      '<tbody>' +
+      data
+        .map((rows) =>
+          Array.from({ length: maxCount })
+            .map((_, i) => renderItem(rows[i]))
+            .join(''),
+        )
+        .map((rowStr, index) => `<tr ${index % 2 === 0 ? '' : 'style="background-color: transparent;"'}>${rowStr}</tr>`)
+        .join('') +
+      '</tbody>';
+  };
+
+  main().catch((err) => {
+    console.error(err);
+    alert('错误：' + err.message);
+  });
+</script>
+</body>
+</html>
